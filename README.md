@@ -271,9 +271,6 @@ Pull requests are welcome. For major changes, please open an issue first.
 
 ---
 
-## 📄 License
-
-MIT © [Rajveer Singh](https://github.com/Rajveer230)
 
 ---
 
