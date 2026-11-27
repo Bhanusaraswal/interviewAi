@@ -1,18 +1,21 @@
-const Groq = require("groq-sdk");
-const pdfParse = require("pdf-parse");
+const { PDFParse } = require("pdf-parse");
 const PDFDocument = require("pdfkit");
 const interviewModel = require("../model/interview.model");
-
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const { chatJSON } = require("../utils/llm");
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 async function extractTextFromPdf(buffer) {
-    const data = await pdfParse(buffer);
-    return data.text;
+    const parser = new PDFParse({ data: buffer });
+    try {
+        const result = await parser.getText();
+        return (result.text || "").trim();
+    } finally {
+        await parser.destroy();
+    }
 }
 
-async function generateInterviewDataFromGroq({ jobDescription, profileText }) {
+async function generateInterviewData({ jobDescription, profileText }) {
     const prompt = `You are an expert technical recruiter and interview coach. Based on the job description and candidate profile below, generate a comprehensive interview preparation report.
 
 JOB DESCRIPTION:
@@ -47,17 +50,7 @@ Rules:
 - skillGaps should list 4-6 skills the candidate is missing or weak in
 - Keep answers concise but complete (2-4 sentences)`;
 
-    const response = await groq.chat.completions.create({
-        model: "llama-3.3-70b-versatile",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 8192,
-        temperature: 0.7,
-    });
-
-    const raw = response.choices[0].message.content.trim();
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("Groq did not return valid JSON");
-    return JSON.parse(jsonMatch[0]);
+    return chatJSON({ prompt, maxTokens: 8192, temperature: 0.7 });
 }
 
 // ── Controllers ───────────────────────────────────────────────────────────────
@@ -86,7 +79,7 @@ const generateReportController = async (req, res) => {
             return res.status(400).json({ message: "Please provide either a resume or a self description" });
         }
 
-        const aiData = await generateInterviewDataFromGroq({ jobDescription, profileText });
+        const aiData = await generateInterviewData({ jobDescription, profileText });
 
         const interviewReport = await interviewModel.create({
             userId: req.user.id,

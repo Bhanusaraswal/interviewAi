@@ -1,8 +1,6 @@
-const Groq = require("groq-sdk");
 const mockInterviewModel = require("../model/mockInterview.model");
 const interviewModel = require("../model/interview.model");
-
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const { chatJSON } = require("../utils/llm");
 
 const startMockSession = async (req, res) => {
     try {
@@ -78,17 +76,7 @@ Rules:
 - score 0 if skipped or empty answer
 - keyPoints: mix of what they got right and what they missed (3-4 points)`;
 
-        const response = await groq.chat.completions.create({
-            model: "llama-3.3-70b-versatile",
-            messages: [{ role: "user", content: prompt }],
-            max_tokens: 512,
-            temperature: 0.4,
-        });
-
-        const raw = response.choices[0].message.content.trim();
-        const jsonMatch = raw.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) throw new Error("AI did not return valid JSON");
-        const evaluation = JSON.parse(jsonMatch[0]);
+        const evaluation = await chatJSON({ prompt, maxTokens: 512, temperature: 0.4 });
 
         session.questions[session.currentIndex].userAnswer       = userAnswer || "";
         session.questions[session.currentIndex].score            = evaluation.score;

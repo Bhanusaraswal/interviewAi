@@ -1,8 +1,16 @@
 const { Resend } = require("resend");
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const hasResendKey =
+    process.env.RESEND_API_KEY && !process.env.RESEND_API_KEY.startsWith("PASTE");
+const resend = hasResendKey ? new Resend(process.env.RESEND_API_KEY) : null;
 
 async function sendOtpEmail(to, otp, type) {
+    // DEV MODE: no Resend key -> print the OTP in the backend terminal
+    if (!resend) {
+        console.log(`\n[DEV] OTP for ${to}: ${otp}\n`);
+        return;
+    }
+
     const isRegister = type === "register";
     const subject = isRegister ? "Verify your PrepAI account" : "Your PrepAI login OTP";
 
@@ -27,7 +35,13 @@ async function sendOtpEmail(to, otp, type) {
         html,
     });
 
-    if (error) throw new Error(error.message);
+    if (error) {
+        // Resend rejected it (the sandbox only emails your own Resend address).
+        // In development, print the OTP instead of failing the signup.
+        console.error("Resend error:", error.message);
+        if (process.env.NODE_ENV === "production") throw new Error(error.message);
+        console.log(`\n[DEV] OTP for ${to}: ${otp}\n`);
+    }
 }
 
 module.exports = { sendOtpEmail };
