@@ -1,151 +1,89 @@
-<div align="center">
+# 🎯 Interview AI — AI-Powered Interview Preparation Platform
 
-# 🎯 PrepAI — AI-Powered Interview Preparation Platform
-
-**Land your dream job with personalized AI interview coaching, face-to-face mock interviews, and real-time delivery analysis.**
-
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react)](https://react.dev)
-[![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=flat-square&logo=node.js)](https://nodejs.org)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat-square&logo=mongodb)](https://mongodb.com)
-[![Groq](https://img.shields.io/badge/Groq-LLaMA_3.3_70B-F55036?style=flat-square)](https://groq.com)
-[![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite)](https://vitejs.dev)
-
-[Live Demo](#) · [Report Bug](https://github.com/Rajveer230/Prepai/issues) · [Request Feature](https://github.com/Rajveer230/Prepai/issues)
-
-</div>
+Interview AI helps you prepare for job interviews. Upload your resume, paste a job description, and get a personalised interview plan. Then practise it in a voice-based mock interview where the AI scores each of your answers and measures how nervous you sound.
 
 ---
 
 ## ✨ Features
 
-### 🤖 AI Interview Plan Generation
-Upload your resume (PDF) + paste a job description → AI generates a fully personalized interview strategy in ~30 seconds including:
-- **Match Score** — how well your profile fits the role
-- **12 Technical Questions** with model answers and interviewer intentions
-- **8 Behavioral Questions** tailored to the company culture
-- **10-Day Preparation Roadmap** with daily tasks
-- **Skill Gap Analysis** — what's missing and how critical it is
-
-### 🎥 Face-to-Face Mock Interview
-Live video interview experience with an AI interviewer:
-- AI reads each question aloud using Text-to-Speech
-- You answer using your **voice** (Web Speech API)
-- Real-time speech transcription appears as you speak
-- AI evaluates each answer and gives a score + feedback + key points
-- Session saved to MongoDB — resume anytime
-
-### 🧠 Nervousness Detector *(Unique Feature)*
-Analyzes your speech delivery in real-time after every answer:
-- **Confidence Score** (0–100) calculated instantly — no API call needed
-- Detects **20+ filler words** ("um", "uh", "like", "basically", "you know"...)
-- Measures **speaking pace** in WPM — flags too fast (>195) or too slow (<85)
-- Tracks **word repetition** and **answer length**
-- Gives actionable coaching tips after each question
-- Final results show **Answer Quality** + **Delivery Score** side by side
-
-### 📊 Analytics Dashboard
-- Score trend chart across all mock interview sessions
-- Technical vs Behavioral performance breakdown (bar chart)
-- Stats: total plans, total mocks, average score, personal best
-- Recent interview plans with match scores
-
-### 🔐 Secure Authentication
-- Email OTP verification for both registration and login
-- JWT stored in httpOnly cookies (XSS-safe)
-- Token blacklist on logout
-- 3-step OTP page with live progress indicator and countdown timer
-
-### 🎨 Dark / Light Theme
-- Smooth CSS variable-based theming across all pages
-- Preference saved in `localStorage`
-- One-click toggle in the Navbar
+- **Secure authentication**: register and log in with email OTP verification, JWT sessions, and token blacklisting on logout
+- **Resume analysis**: upload a PDF resume, or write a short self-description instead
+- **AI interview report** for any job description:
+  - Match score between your profile and the job
+  - Skill gaps ranked by severity
+  - 12 technical and 8 behavioural questions, each with the interviewer's intention and a model answer
+  - A 10-day preparation roadmap
+- **Mock interview**: the AI reads questions aloud, you answer by voice (speech-to-text) or text, and every answer gets a score, feedback and key points
+- **Nervousness detector**: filler words, speaking pace (words per minute) and repeated words are measured in the browser
+- **PDF export** of your full interview plan
+- **Profile dashboard** with your statistics and a change-password option
+- **Dark and light theme**
 
 ---
 
-## 🛠 Tech Stack
+## 🛠️ Tech Stack
 
-### Frontend
-| Technology | Purpose |
+| Layer | Technology |
 |---|---|
-| React 19 + Vite | UI framework + build tool |
-| React Router v7 | Client-side routing |
-| SCSS (BEM) | Styling with CSS custom properties for theming |
-| Recharts | Analytics charts |
-| Axios | HTTP client |
-| Web Speech API | Voice input + Text-to-Speech |
-| MediaDevices API | Camera access |
+| Frontend | React 19, Vite, React Router, Axios, Sass |
+| Backend | Node.js, Express 5 |
+| Database | MongoDB with Mongoose |
+| AI | Google Gemini (through an OpenAI-compatible API) |
+| Email | Resend |
+| Auth | JWT, bcryptjs, cookie-parser |
+| File handling | Multer (upload), pdf-parse (read PDFs), PDFKit (create PDFs) |
+| Browser APIs | Web Speech API, speechSynthesis, camera access |
 
-### Backend
-| Technology | Purpose |
-|---|---|
-| Node.js + Express 5 | REST API server |
-| MongoDB + Mongoose | Database |
-| Groq SDK (LLaMA 3.3 70B) | AI question generation + answer evaluation |
-| JWT + bcryptjs | Authentication |
-| Nodemailer + Gmail SMTP | OTP email delivery |
-| Multer + pdf-parse | Resume PDF upload and parsing |
+The AI layer is provider-agnostic. Any OpenAI-compatible service (Gemini, OpenRouter, Ollama, and others) works by changing three environment variables.
 
 ---
 
 ## 📁 Project Structure
 
 ```
-prepai/
+interviewAi/
 ├── Backend/
 │   └── src/
-│       ├── controller/
-│       │   ├── auth.controller.js       # Register, login, OTP verify
-│       │   ├── interview.controller.js  # AI plan generation
-│       │   ├── mock.controller.js       # Mock interview sessions
-│       │   └── user.controller.js       # Profile stats, change password
-│       ├── model/
-│       │   ├── user.model.js
-│       │   ├── interview.model.js
-│       │   ├── mockInterview.model.js   # Stores nervousness data per question
-│       │   └── blacklist.model.js
-│       ├── routes/
-│       ├── middlewares/
+│       ├── app.js                  # Express setup, CORS, routes
+│       ├── server.js               # Entry point
+│       ├── config/                 # MongoDB connection
+│       ├── controller/             # auth, interview, mock, user logic
+│       ├── middlewares/            # JWT auth middleware
+│       ├── model/                  # user, interview, mockInterview, blacklist
+│       ├── routes/                 # auth, interview, mock, user routes
 │       └── utils/
-│           └── email.js                 # Nodemailer OTP sender
-│
+│           ├── llm.js              # AI client with retry and fallback
+│           └── email.js            # OTP emails
 └── Frontend/
     └── src/
+        ├── App.jsx, app.routes.jsx
+        ├── components/             # Navbar
+        ├── context/                # Theme context
         ├── features/
-        │   ├── auth/                    # Login, Register, OTP pages + context
-        │   ├── interview/
-        │   │   ├── pages/
-        │   │   │   ├── Home.jsx         # Dashboard + plan generator
-        │   │   │   ├── interview.jsx    # View generated plan
-        │   │   │   └── MockInterview.jsx # Face-to-face mock + nervousness UI
-        │   │   └── utils/
-        │   │       └── nervousness.js   # Pure JS speech analysis (no API)
-        │   └── user/
-        │       └── pages/Profile.jsx   # Analytics dashboard
-        ├── context/
-        │   └── ThemeContext.jsx         # Dark/light theme
-        ├── pages/
-        │   └── Landing.jsx
-        └── components/
-            └── Navbar.jsx
+        │   ├── auth/               # Login, Register, Verify OTP
+        │   ├── interview/          # Dashboard, report, mock interview
+        │   └── user/               # Profile
+        ├── pages/                  # Landing, NotFound
+        └── utils/                  # api client, toast, nervousness analysis
 ```
 
 ---
 
-## 🚀 Local Setup
+## 🚀 Getting Started
 
-### Prerequisites
-- Node.js 18+
-- MongoDB Atlas account (free)
-- Groq API key (free at console.groq.com)
-- Gmail account with App Password enabled
+### Requirements
+- Node.js 18 or newer
+- A MongoDB database (a free [MongoDB Atlas](https://www.mongodb.com/atlas) cluster works)
+- A [Google Gemini API key](https://aistudio.google.com/apikey) (free tier available)
+- A [Resend](https://resend.com) API key (optional while developing)
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/prepai.git
-cd prepai
+git clone https://github.com/Bhanusaraswal/interviewAi.git
+cd interviewAi
 ```
 
-### 2. Setup Backend
+### 2. Set up the backend
 ```bash
 cd Backend
 npm install
@@ -154,20 +92,22 @@ npm install
 Create `Backend/.env`:
 ```env
 MONGO_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/interview-ai
-JWT_SECRET=your_random_64_char_secret
-GROQ_API_KEY=gsk_your_groq_api_key
-EMAIL_USER=your@gmail.com
-EMAIL_PASS=your_gmail_app_password
+JWT_SECRET=a_long_random_string_of_at_least_32_characters
+RESEND_API_KEY=re_xxxxxxxxxxxx
+
+LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+LLM_API_KEY=your_gemini_api_key
+LLM_MODEL=your_gemini_model_name
+LLM_FALLBACK_MODEL=optional_backup_model_name
 ```
 
-> **Gmail App Password:** Go to myaccount.google.com → Security → 2-Step Verification → App Passwords → Generate
-
+Start the server:
 ```bash
 npm run dev
-# Server runs on http://localhost:3000
 ```
+The API runs at `http://localhost:3000`.
 
-### 3. Setup Frontend
+### 3. Set up the frontend
 ```bash
 cd ../Frontend
 npm install
@@ -178,32 +118,14 @@ Create `Frontend/.env`:
 VITE_API_URL=http://localhost:3000
 ```
 
+Start the app:
 ```bash
 npm run dev
-# App runs on http://localhost:5173
 ```
+Open `http://localhost:5173`.
 
----
-
-## ☁️ Deployment
-
-| Service | Platform | Free Tier |
-|---|---|---|
-| Frontend | [Vercel](https://vercel.com) | ✅ Yes |
-| Backend | [Render](https://render.com) | ✅ Yes |
-| Database | MongoDB Atlas | ✅ Yes |
-
-### Deploy Backend (Render)
-1. New Web Service → connect GitHub repo
-2. Root Directory: `Backend`
-3. Build Command: `npm install`
-4. Start Command: `npm start`
-5. Add all environment variables from `.env` + `NODE_ENV=production`
-
-### Deploy Frontend (Vercel)
-1. Import GitHub repo → Root Directory: `Frontend`
-2. Add environment variable: `VITE_API_URL=https://your-backend.onrender.com`
-3. Deploy
+> **Development tip:** if `RESEND_API_KEY` is missing, or Resend refuses to send, the OTP code is printed in the backend terminal so you can still sign up.
+> Resend's free sandbox only delivers email to the address you registered with. To email other users, verify your own domain in Resend.
 
 ---
 
@@ -212,68 +134,89 @@ npm run dev
 ### Backend
 | Variable | Description |
 |---|---|
-| `MONGO_URI` | MongoDB Atlas connection string |
-| `JWT_SECRET` | Secret key for JWT signing (min 32 chars) |
-| `GROQ_API_KEY` | Groq API key for LLaMA 3.3 70B |
-| `EMAIL_USER` | Gmail address for sending OTPs |
-| `EMAIL_PASS` | Gmail App Password (not your Gmail password) |
-| `NODE_ENV` | Set to `production` on deployment |
+| `MONGO_URI` | MongoDB connection string |
+| `JWT_SECRET` | Secret used to sign login tokens (at least 32 characters) |
+| `RESEND_API_KEY` | Resend API key for OTP emails |
+| `LLM_BASE_URL` | Base URL of an OpenAI-compatible AI API |
+| `LLM_API_KEY` | API key for that provider |
+| `LLM_MODEL` | Model name to use |
+| `LLM_FALLBACK_MODEL` | Optional backup model used if the main one is busy |
+| `NODE_ENV` | Set to `production` when deployed |
+| `PORT` | Optional, defaults to 3000 |
 
 ### Frontend
 | Variable | Description |
 |---|---|
-| `VITE_API_URL` | Backend URL (e.g. `https://prepai-backend.onrender.com`) |
+| `VITE_API_URL` | URL of the backend API |
 
 ---
 
-## 📸 Pages Overview
+## 📡 API Overview
 
-| Page | Route | Description |
+| Method | Endpoint | Description |
 |---|---|---|
-| Landing | `/` | Marketing page |
-| Register | `/register` | Sign up with OTP verification |
-| Login | `/login` | Sign in with OTP verification |
-| Verify OTP | `/verify-otp` | 6-digit email OTP with countdown timer |
-| Dashboard | `/dashboard` | Generate new interview plan |
-| Interview Plan | `/interview/:id` | View questions, answers, roadmap |
-| Mock Interview | `/mock-interview/:id` | Face-to-face AI interview + nervousness detector |
-| Profile | `/profile` | Analytics dashboard + change password |
+| POST | `/api/auth/register` | Create an account and send an OTP |
+| POST | `/api/auth/login` | Check credentials and send an OTP |
+| POST | `/api/auth/verify-otp` | Verify the OTP and log in |
+| POST | `/api/auth/resend-otp` | Send a new OTP |
+| POST | `/api/auth/logout` | Log out and blacklist the token |
+| GET | `/api/auth/get-me` | Get the current user |
+| POST | `/api/interview/` | Generate an interview report (resume PDF and job description) |
+| GET | `/api/interview/` | List your reports |
+| GET | `/api/interview/report/:id` | Get one report |
+| POST | `/api/interview/resume/pdf/:id` | Download the report as a PDF |
+| DELETE | `/api/interview/report/:id` | Delete a report |
+| POST | `/api/mock/start/:reportId` | Start a mock interview |
+| POST | `/api/mock/submit/:sessionId` | Submit an answer for scoring |
+| GET | `/api/mock/:sessionId` | Get a mock interview session |
+| GET | `/api/user/stats` | Get profile statistics |
+| PUT | `/api/user/change-password` | Change your password |
+
+All routes except register, login, verify-otp and resend-otp require a valid token.
 
 ---
 
-## ⚡ How the Nervousness Detector Works
+## ☁️ Deployment
 
-No AI API is called — analysis runs instantly in the browser:
+### Backend on Render
+1. Create a new **Web Service** and connect this GitHub repository
+2. **Root Directory:** `Backend`
+3. **Build Command:** `npm install`
+4. **Start Command:** `npm start`
+5. Add all backend environment variables and set `NODE_ENV=production`
 
-```
-transcript + duration
-        ↓
-analyzeNervousness()
-        ↓
-┌─────────────────────────────────┐
-│ Count filler words              │  "um", "uh", "like", "you know"...
-│ Calculate WPM                   │  words ÷ seconds × 60
-│ Detect word repetition          │  words used 3+ times
-│ Measure answer length           │  total word count
-└─────────────────────────────────┘
-        ↓
-Confidence Score (0–100)
-+ Coaching Tips
-```
+### Frontend on Vercel
+1. Import this repository
+2. **Root Directory:** `Frontend`
+3. Add the environment variable `VITE_API_URL` with your Render backend URL
+4. Deploy
 
-**Score formula:** Start at 100 → deduct for fillers (−6 each), fast/slow pace (−15/−10), short answers (−20), repetition (−5 each)
+### MongoDB Atlas
+Under **Network Access**, allow `0.0.0.0/0` so the hosted backend can connect.
+
+> **Note:** with `NODE_ENV=production`, failed emails are treated as errors. Verify a domain in Resend before inviting other users. Render's free tier also sleeps when idle, so the first request after a pause can take up to a minute.
+
+---
+
+## 🔒 Security
+
+- Passwords are hashed with bcrypt
+- Login tokens are signed JWTs that expire after one day, and logged-out tokens are blacklisted
+- Every report and mock session is filtered by user, so people only see their own data
+- Uploads are limited to PDF files under 5 MB
+- Secrets live in `.env` files, which are excluded from Git
+
+---
+
+## 🗺️ Roadmap
+
+- Cross-questioning interviewer that asks follow-up questions based on your answers
+- AI agents for company research, resume tailoring and adaptive study plans
+- Progress charts across mock interviews
+- In-browser coding round
 
 ---
 
 ## 🤝 Contributing
 
-Pull requests are welcome. For major changes, please open an issue first.
-
----
-
-
----
-
-<div align="center">
-Built with ❤️ using React, Node.js, and Groq AI
-</div>
+Contributions, issues and feature requests are welcome. Open an issue or submit a pull request.
